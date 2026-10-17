@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090711">
+<meta name="description" content="Anime Zone : découvre des animés et trouve des options légales pour les regarder.">
+<title>Anime Zone | L'univers des animés</title>
+<style>
+:root{--bg:#090711;--panel:#14111f;--purple:#7547ff;--neon:#a78bff;--text:#f8f7ff;--muted:#aaa4bd}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+button,input,select{font:inherit}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 5%;background:#0d0a17ee;backdrop-filter:blur(15px);border-bottom:1px solid #38245e}
+.logo{font-size:23px;font-weight:900;white-space:nowrap}.logo span{color:var(--neon)}
+nav{display:flex;gap:22px}nav a{color:#d5d0e2;font-size:14px}nav a:hover{color:var(--neon)}
+.header-search{display:flex;min-width:170px;background:#211b31;border:1px solid #3c3155;border-radius:9px;overflow:hidden}
+.header-search input{width:100%;min-width:0;padding:10px;color:white;background:transparent;border:0;outline:0}
+.header-search button{border:0;padding:0 12px;color:white;background:var(--purple);cursor:pointer}
+.hero{position:relative;min-height:440px;display:flex;align-items:center;overflow:hidden;padding:55px 7%;background:radial-gradient(ellipse at 80% 45%,#6635c955,transparent 42%),linear-gradient(100deg,#100b20 5%,#100b20e8 48%,#1c1034 100%);border-bottom:1px solid #38245e}
+.hero-content{position:relative;z-index:2;max-width:570px}
+.eyebrow{color:var(--neon);font-size:12px;font-weight:bold;letter-spacing:3px;text-transform:uppercase}
+.hero h1{margin:16px 0;font-size:clamp(35px,6vw,62px);line-height:1.04}.hero h1 span{color:var(--neon);text-shadow:0 0 28px #7547ff55}
+.hero p{color:#c3bdd2;line-height:1.8;max-width:470px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.btn{display:inline-flex;justify-content:center;align-items:center;padding:13px 18px;border:1px solid #5b438f;border-radius:8px;color:white;background:#211a32;cursor:pointer}
+.btn-primary{background:var(--purple);border-color:var(--purple);font-weight:bold}.btn:hover{filter:brightness(1.18)}
+.hero-art{position:absolute;z-index:1;width:35%;height:85%;right:7%;top:8%;object-fit:contain;object-position:center;filter:drop-shadow(0 0 30px #7547ff44);opacity:.85}
+main{width:90%;max-width:1250px;margin:35px auto 55px}
+.section{margin-bottom:44px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.section h2{margin:0;font-size:22px}.section h2 span{color:var(--neon)}
+.subtext{color:var(--muted);font-size:13px;margin-top:8px}.small-link{color:var(--neon);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px 14px}
+.card{min-width:0;overflow:hidden;background:var(--panel);border:1px solid #292238;border-radius:10px;transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:#8058ff}
+.poster-wrap{position:relative;background:#211b30;aspect-ratio:3/4.2}
+.poster{width:100%;height:100%;object-fit:cover;display:block}
+.score{position:absolute;top:9px;left:8px;padding:6px 8px;background:#0c0919e8;border:1px solid #6544a5;border-radius:6px;font-size:11px;color:#e4d9ff}
+.card-info{padding:11px}.card h3{margin:0 0 8px;font-size:14px;line-height:1.4;min-height:39px}
+.meta{color:var(--muted);font-size:11px;margin-bottom:10px}
+.card-actions{display:grid;gap:7px}.card-actions button{width:100%;border-radius:6px;padding:9px 5px;font-size:11px;cursor:pointer}
+.details-btn{color:white;background:#2b2140;border:1px solid #4d3a70}
+.watch-btn{color:white;background:var(--purple);border:1px solid var(--purple)}
+.status{text-align:center;color:var(--muted);padding:35px 10px;grid-column:1/-1;line-height:1.8}
+.more{display:block;margin:25px auto 0}.hidden{display:none!important}
+.search-tools{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+.search-tools input,.search-tools select{min-width:0;padding:12px;border-radius:8px;color:white;background:#181323;border:1px solid #3d3156}
+.search-tools input{flex:1}
+.category-row{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;margin-bottom:24px}
+.chip{flex:0 0 auto;padding:10px 15px;border:1px solid #352a4c;border-radius:30px;background:#15111f;color:#d8d1e8;cursor:pointer}
+.chip.active,.chip:hover{background:var(--purple);border-color:var(--purple);color:white}
+.info-box{background:linear-gradient(120deg,#19132a,#100d19);border:1px solid #3b2a5e;border-radius:12px;padding:22px;line-height:1.8}
+.info-box h3{margin-top:0}.info-box p{color:#c1bacf;font-size:14px}
+.platforms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.platform{display:flex;flex-direction:column;gap:9px;padding:18px;border:1px solid #49336f;border-radius:10px;background:#171122;transition:.2s}
+.platform:hover{border-color:#a78bff;box-shadow:0 0 18px #7547ff35;transform:translateY(-2px)}
+.platform strong{color:#b9a2ff;font-size:16px}.platform span{color:#c1bacf;font-size:12px}
+footer{padding:32px 5%;background:#0d0a15;border-top:1px solid #38245e;color:var(--muted);font-size:13px;line-height:1.8}
+.footer-inner{max-width:1250px;margin:auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}footer strong{color:var(--neon)}
+dialog{width:min(600px,92%);max-height:85vh;overflow:auto;color:white;background:#151020;border:1px solid #6847aa;border-radius:14px;padding:22px}
+dialog::backdrop{background:#000c}dialog h2{color:var(--neon)}dialog p{color:#d1c9df;line-height:1.7}
+.dialog-actions{display:flex;gap:10px;flex-wrap:wrap}.close-btn{margin-top:15px}
+@media(max-width:900px){header{flex-wrap:wrap}nav{order:3;width:100%;justify-content:space-between}.header-search{flex:1}.hero-art{right:1%;width:38%;opacity:.4}.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){header{padding:13px 4%;gap:12px}.logo{font-size:20px}nav{gap:10px}nav a{font-size:12px}.header-search{order:2;flex-basis:100%}.hero{min-height:400px;padding:45px 6%}.hero-art{width:65%;height:70%;right:-17%;top:15%;opacity:.18}.hero-content{max-width:100%}main{width:92%;margin-top:28px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.section h2{font-size:19px}.card h3{font-size:13px}.card-info{padding:9px}.hero h1{font-size:39px}}
+@media(max-width:420px){.platforms{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <a href="#accueil" class="logo">ANIME <span>ZONE</span></a>
+  <nav>
+    <a href="#accueil">Accueil</a><a href="#tendances">Tendances</a>
+    <a href="#catalogue">Catalogue</a><a href="#regarder">Regarder</a>
+  </nav>
+  <form class="header-search" id="headerForm">
+    <input id="headerQuery" placeholder="Rechercher un animé..." aria-label="Rechercher un animé">
+    <button aria-label="Rechercher">⌕</button>
+  </form>
+</header>
+
+<section class="hero" id="accueil">
+  <div class="hero-content">
+    <div class="eyebrow">Bienvenue dans ton univers</div>
+    <h1>TON PROCHAIN<br>ANIMÉ EST <span>ICI.</span></h1>
+    <p>Explore de nouveaux mondes, découvre les séries qui font parler les fans et trouve où les regarder légalement.</p>
+    <div class="hero-actions">
+      <a href="#tendances" class="btn btn-primary">✦ Découvrir les animés</a>
+      <a href="#catalogue" class="btn">Explorer le catalogue →</a>
+    </div>
+  </div>
+  <img class="hero-art" id="heroArt" alt="Affiche de l'animé à la une">
+</section>
+
+<main>
+  <section class="section" id="tendances">
+    <div class="section-head">
+      <div><h2>À la une <span>✦</span></h2><div class="subtext">Les animés populaires du moment</div></div>
+      <a href="#catalogue" class="small-link">Tout explorer →</a>
+    </div>
+    <div class="grid" id="trendingGrid"><div class="status">Chargement des animés...</div></div>
+  </section>
+
+  <section class="section" id="catalogue">
+    <div class="section-head">
+      <div><h2>Explore le <span>catalogue</span></h2><div class="subtext">Recherche un titre ou choisis une catégorie.</div></div>
+    </div>
+    <form class="search-tools" id="searchForm">
+      <input id="query" placeholder="Exemple : Naruto, One Piece, Bleach..." aria-label="Nom de l'animé">
+      <select id="kind" aria-label="Format">
+        <option value="">Tous les formats</option><option value="tv">Séries</option><option value="movie">Films</option><option value="ova">OVA</option>
+      </select>
+      <button class="btn btn-primary">Rechercher</button>
+    </form>
+    <div class="category-row" id="categories">
+      <button type="button" class="chip active" data-genre="">Tous</button>
+      <button type="button" class="chip" data-genre="1">Action</button>
+      <button type="button" class="chip" data-genre="2">Aventure</button>
+      <button type="button" class="chip" data-genre="4">Comédie</button>
+      <button type="button" class="chip" data-genre="10">Fantaisie</button>
+      <button type="button" class="chip" data-genre="22">Romance</button>
+      <button type="button" class="chip" data-genre="24">Science-fiction</button>
+    </div>
+    <div class="section-head"><h2 id="catalogueTitle">Animés populaires</h2><span class="small-link" id="resultCount"></span></div>
+    <div class="grid" id="catalogueGrid"><div class="status">Préparation du catalogue...</div></div>
+    <button class="btn btn-primary more" id="loadMore">Charger plus d'animés</button>
+  </section>
+
+  <section class="section" id="regarder">
+    <div class="section-head">
+      <div><h2>▶ Regarder les <span>animés</span></h2><div class="subtext">Choisis un animé et recherche une plateforme officielle.</div></div>
+    </div>
+    <div class="info-box">
+      <h3 id="watchTitle">Choisis ton animé</h3>
+      <p id="watchDescription">Sélectionne « Où regarder ? » sur une affiche pour rechercher des options légales.</p>
+      <div class="platforms">
+        <a id="crunchyrollLink" class="platform" target="_blank" rel="noopener noreferrer" href="https://www.crunchyroll.com/"><strong>Crunchyroll ↗</strong><span>Rechercher cet animé</span></a>
+        <a id="netflixLink" class="platform" target="_blank" rel="noopener noreferrer" href="https://www.netflix.com/"><strong>Netflix ↗</strong><span>Rechercher cet animé</span></a>
+        <a id="adnLink" class="platform" target="_blank" rel="noopener noreferrer" href="https://animationdigitalnetwork.com/"><strong>ADN ↗</strong><span>Rechercher cet animé</span></a>
+        <a id="youtubeLink" class="platform" target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/"><strong>YouTube ↗</strong><span>Rechercher une source officielle</span></a>
+      </div>
+      <p class="subtext">La disponibilité dépend du titre, du pays et de l'abonnement. Vérifie les détails sur le site officiel.</p>
+    </div>
+  </section>
+
+  <section class="section" id="legal">
+    <div class="info-box">
+      <h3>À propos d'Anime Zone</h3>
+      <p>Anime Zone aide les fans à découvrir des animés et à rechercher des options de visionnage légales. Le site ne diffuse pas lui-même les épisodes. Les titres et illustrations appartiennent à leurs ayants droit.</p>
+      <a class="btn btn-primary" href="https://www.crunchyroll.com/" target="_blank" rel="noopener noreferrer">Visiter Crunchyroll ↗</a>
+      <a class="btn" href="https://www.netflix.com/" target="_blank" rel="noopener noreferrer">Visiter Netflix ↗</a>
+    </div>
+  </section>
+</main>
+
+<footer><div class="footer-inner">
+  <div><strong>ANIME ZONE</strong><br>Découvre ton prochain univers.</div>
+  <div>Catalogue informatif indépendant.<br>Les titres et illustrations appartiennent à leurs ayants droit.</div>
+  <div>© 2026 Anime Zone — Projet en construction</div>
+</div></footer>
+
+<dialog id="animeDialog">
+  <h2 id="dialogTitle">Détails de l'animé</h2><p id="dialogMeta"></p><p id="dialogSynopsis"></p>
+  <div class="dialog-actions">
+    <button id="dialogWatch" class="btn btn-primary">Où regarder ? ↗</button>
+    <a id="dialogMal" class="btn" target="_blank" rel="noopener noreferrer">Plus d'informations ↗</a>
+  </div>
+  <button class="btn close-btn" id="closeDialog">Fermer</button>
+</dialog>
+
+<script>
+const API = "https://api.jikan.moe/v4";
+const trendingGrid = document.getElementById("trendingGrid");
+const catalogueGrid = document.getElementById("catalogueGrid");
+const loadMore = document.getElementById("loadMore");
+
+let page = 1;
+let genre = "";
+let searchText = "";
+let kind = "";
+let busy = false;
+let searchVersion = 0;
+let hasMore = true;
+let lastRequestUrl = "";
+
+function platformSearchUrl(title, platform) {
+  const searches = {
+    crunchyroll: "site:crunchyroll.com " + title,
+    netflix: "site:netflix.com/title " + title,
+    adn: "site:animationdigitalnetwork.com " + title,
+    youtube: title + " anime épisode officiel"
+  };
+  return "https://www.google.com/search?q=" + encodeURIComponent(searches[platform]);
+}
+
+function showWatchOptions(anime) {
+  document.getElementById("watchTitle").textContent = "Regarder : " + anime.title;
+  document.getElementById("watchDescription").textContent =
+    "Recherche des options officielles pour " + anime.title +
+    ". La disponibilité varie selon le pays et peut nécessiter un abonnement.";
+  document.getElementById("crunchyrollLink").href = platformSearchUrl(anime.title, "crunchyroll");
+  document.getElementById("netflixLink").href = platformSearchUrl(anime.title, "netflix");
+  document.getElementById("adnLink").href = platformSearchUrl(anime.title, "adn");
+  document.getElementById("youtubeLink").href = platformSearchUrl(anime.title, "youtube");
+  document.getElementById("regarder").scrollIntoView({behavior:"smooth"});
+}
+
+function makeCard(anime) {
+  const card = document.createElement("article");
+  card.className = "card";
+  const wrap = document.createElement("div");
+  wrap.className = "poster-wrap";
+  const img = document.createElement("img");
+  img.className = "poster";
+  img.loading = "lazy";
+  img.alt = "Affiche de " + anime.title;
+  img.src = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || "";
+  img.onerror = () => { img.alt = "Affiche indisponible"; img.style.opacity = "0.15"; };
+  const score = document.createElement("span");
+  score.className = "score";
+  score.textContent = "★ " + (anime.score || "N/A");
+  wrap.append(img, score);
+
+  const info = document.createElement("div");
+  info.className = "card-info";
+  const title = document.createElement("h3");
+  title.textContent = anime.title;
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = (anime.type || "Animé") + " • " + (anime.year || anime.aired?.prop?.from?.year || "Année inconnue");
+
+  const actions = document.createElement("div");
+  actions.className = "card-actions";
+  const details = document.createElement("button");
+  details.className = "details-btn";
+  details.textContent = "Voir les détails";
+  details.addEventListener("click", () => openDetails(anime));
+  const watch = document.createElement("button");
+  watch.className = "watch-btn";
+  watch.textContent = "Où regarder ? ↗";
+  watch.addEventListener("click", () => showWatchOptions(anime));
+  actions.append(details, watch);
+  info.append(title, meta, actions);
+  card.append(wrap, info);
+  return card;
+}
+
+function drawCards(container, items) {
+  container.innerHTML = "";
+  if (!items || items.length === 0) {
+    const message = document.createElement("div");
+    message.className = "status";
+    message.textContent = "Aucun résultat. Essaie un autre titre.";
+    container.appendChild(message);
+    return;
+  }
+  items.forEach(anime => container.appendChild(makeCard(anime)));
+}
+
+function openDetails(anime) {
+  document.getElementById("dialogTitle").textContent = anime.title;
+  document.getElementById("dialogMeta").textContent =
+    "Format : " + (anime.type || "Inconnu") +
+    " • Année : " + (anime.year || "Inconnue") +
+    " • Note : " + (anime.score || "Non notée") +
+    " • Épisodes : " + (anime.episodes || "Inconnu");
+  document.getElementById("dialogSynopsis").textContent =
+    anime.synopsis || "Aucun résumé n'est disponible pour ce titre.";
+  document.getElementById("dialogMal").href = anime.url || "https://myanimelist.net/anime";
+  const dialog = document.getElementById("animeDialog");
+  document.getElementById("dialogWatch").onclick = () => {
+    dialog.close();
+    showWatchOptions(anime);
+  };
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else alert(anime.title + "\n\n" + (anime.synopsis || "Résumé indisponible."));
+}
+
+document.getElementById("closeDialog").addEventListener("click", () => {
+  document.getElementById("animeDialog").close();
+});
+
+async function fetchAnime(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Le catalogue est temporairement indisponible.");
+  return await response.json();
+}
+
+async function loadTrending() {
+  try {
+    const result = await fetchAnime(API + "/top/anime?limit=5&filter=bypopularity");
+    drawCards(trendingGrid, result.data || []);
+    const featured = result.data?.[0];
+    if (featured?.images?.jpg?.large_image_url) {
+      document.getElementById("heroArt").src = featured.images.jpg.large_image_url;
+      document.getElementById("heroArt").alt = "Affiche de " + featured.title;
+    }
+  } catch (error) {
+    trendingGrid.innerHTML = "";
+    const message = document.createElement("div");
+    message.className = "status";
+    message.textContent = "Impossible de charger les tendances. Vérifie Internet puis recharge la page.";
+    trendingGrid.appendChild(message);
+  }
+}
+
+async function loadCatalogue(reset = false) {
+  if (busy && !reset) return;
+  if (reset) {
+    searchVersion++;
+    page = 1;
+    hasMore = true;
+  }
+  const thisVersion = searchVersion;
+  const query = searchText;
+  const selectedGenre = genre;
+  const selectedKind = kind;
+  busy = true;
+  loadMore.disabled = true;
+  loadMore.textContent = "Chargement...";
+  if (reset) catalogueGrid.innerHTML = '<div class="status">Recherche des animés...</div>';
+
+  const params = new URLSearchParams({
+    page: String(page), limit: "20",
+    order_by: query ? "popularity" : "score",
+    sort: "desc", sfw: "true"
+  });
+  if (query) params.set("q", query);
+  if (selectedGenre) params.set("genres", selectedGenre);
+  if (selectedKind) params.set("type", selectedKind);
+  const url = API + "/anime?" + params.toString();
+  lastRequestUrl = url;
+
+  try {
+    const result = await fetchAnime(url);
+    if (thisVersion !== searchVersion) return;
+    const data = result.data || [];
+    if (reset) drawCards(catalogueGrid, data);
+    else data.forEach(anime => catalogueGrid.appendChild(makeCard(anime)));
+    hasMore = result.pagination?.has_next_page || false;
+    document.getElementById("resultCount").textContent = data.length + " résultats sur cette page";
+    document.getElementById("catalogueTitle").textContent =
+      query ? 'Résultats pour "' + query + '"' :
+      selectedGenre ? "Animés par genre" : "Animés populaires";
+    loadMore.classList.toggle("hidden", !hasMore);
+  } catch (error) {
+    if (thisVersion !== searchVersion) return;
+    catalogueGrid.innerHTML = "";
+    const message = document.createElement("div");
+    message.className = "status";
+    message.textContent = error.message + " Vérifie ta connexion et réessaie.";
+    catalogueGrid.appendChild(message);
+    loadMore.classList.add("hidden");
+  } finally {
+    if (thisVersion === searchVersion) {
+      busy = false;
+      loadMore.disabled = false;
+      loadMore.textContent = "Charger plus d'animés";
+    }
+  }
+}
+
+document.getElementById("searchForm").addEventListener("submit", event => {
+  event.preventDefault();
+  searchText = document.getElementById("query").value.trim();
+  document.getElementById("headerQuery").value = searchText;
+  loadCatalogue(true);
+});
+document.getElementById("headerForm").addEventListener("submit", event => {
+  event.preventDefault();
+  searchText = document.getElementById("headerQuery").value.trim();
+  document.getElementById("query").value = searchText;
+  document.getElementById("catalogue").scrollIntoView({behavior:"smooth"});
+  loadCatalogue(true);
+});
+document.getElementById("categories").addEventListener("click", event => {
+  const button = event.target.closest("button[data-genre]");
+  if (!button) return;
+  document.querySelectorAll(".chip").forEach(chip => chip.classList.remove("active"));
+  button.classList.add("active");
+  genre = button.dataset.genre;
+  loadCatalogue(true);
+});
+document.getElementById("kind").addEventListener("change", event => {
+  kind = event.target.value;
+  loadCatalogue(true);
+});
+loadMore.addEventListener("click", () => {
+  if (!busy && hasMore) {
+    page++;
+    loadCatalogue(false);
+  }
+});
+loadTrending();
+loadCatalogue(true);
+</script>
+</body>
+</html>
