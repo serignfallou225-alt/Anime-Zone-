@@ -43,6 +43,7 @@ h2{font-size:23px;margin:0 0 5px}.sub{font-size:12px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
 .card{min-width:0;background:var(--panel);border:1px solid #29213a;border-radius:11px;overflow:hidden;transition:transform .18s,border-color .18s}
 .card:hover{transform:translateY(-4px);border-color:#7d58df}
+.favorite-btn{position:absolute;top:8px;right:8px;z-index:2;width:36px;height:36px;border:1px solid #ffffff33;border-radius:50%;background:#090711dc;color:#fff;font-size:20px;display:grid;place-items:center}.favorite-btn.is-favorite{color:#ff6bba;border-color:#ff6bba;background:#32152ddd}.favorite-btn:focus-visible{outline:2px solid var(--neon);outline-offset:2px}
 .poster-wrap{position:relative;aspect-ratio:3/4;background:#211833;overflow:hidden}
 .poster{width:100%;height:100%;object-fit:cover;display:block}
 .score{position:absolute;bottom:8px;right:8px;background:rgba(117,71,245,.95);padding:5px 7px;border-radius:5px;font-size:11px;font-weight:800}
@@ -71,7 +72,7 @@ footer a{color:var(--neon)}
     <div class="navlinks">
       <a href="#accueil">Accueil</a><a href="#catalogue">Top 100</a><a href="#catalogue">Collections</a><a href="#infos">Infos</a>
     </div>
-    <div class="nav-actions"><button class="iconbtn" id="navSearch" aria-label="Aller à la recherche">⌕</button><button class="iconbtn" id="randomBtn" title="Anime au hasard">✦</button></div>
+    <div class="nav-actions"><button class="iconbtn" id="favoritesToggle" aria-label="Afficher mes favoris" title="Mes favoris">♡ <span id="favoriteCount">0</span></button><button class="iconbtn" id="navSearch" aria-label="Aller à la recherche">⌕</button><button class="iconbtn" id="randomBtn" title="Anime au hasard">✦</button></div>
   </nav>
 </header>
 <main>
@@ -93,7 +94,7 @@ footer a{color:var(--neon)}
       <select id="yearFilter" aria-label="Filtrer par année"><option value="">Toutes les années</option></select>
       <button class="filterbtn" id="clearFilters">Effacer ✕</button>
     </div>
-    <div class="resultsline"><span id="countText">Préparation du catalogue…</span><span id="sortText">Tri : populaires</span></div>
+    <div class="resultsline"><span id="countText">Préparation du catalogue…</span><span id="sortText">Tri : populaires</span></div><div id="favoritesBanner" class="notice" hidden style="margin:0 0 14px">⭐ Tu consultes tes favoris. <button class="secondary" id="showAllBtn">Voir tout le catalogue</button></div>
     <div class="grid" id="animeGrid"><div class="loading">Chargement des animés…<br>Patiente quelques secondes.</div></div>
     <div class="more-row"><button class="secondary" id="loadMore" hidden>Charger plus d'animés ↓</button></div>
     <p class="notice">Les informations du catalogue proviennent de Tenrai API, une API publique en bêta. Si le service est indisponible, Anime Zone affiche un petit catalogue de secours. Anime Zone ne diffuse pas directement de vidéos : les liens servent à rechercher des options légales disponibles selon ton pays.</p>
@@ -120,7 +121,14 @@ const grid=document.getElementById('animeGrid');
 const countText=document.getElementById('countText');
 const searchInput=document.getElementById('searchInput');
 const loadMoreBtn=document.getElementById('loadMore');
-let allAnime=[],shownAnime=[],page=1,currentType='all',currentQuery='',requestToken=0;
+let allAnime=[],shownAnime=[],page=1,currentType='all',currentQuery='',requestToken=0,showFavoritesOnly=false;
+const FAVORITES_KEY='animeZoneFavorites_v1';
+let favoriteAnime=readFavorites();
+function readFavorites(){try{const raw=localStorage.getItem(FAVORITES_KEY);const parsed=raw?JSON.parse(raw):[];return Array.isArray(parsed)?parsed.filter(a=>a&&a.mal_id!=null):[];}catch(e){return [];}}
+function saveFavorites(){try{localStorage.setItem(FAVORITES_KEY,JSON.stringify(favoriteAnime));updateFavoriteCount();return true;}catch(e){alert('La sauvegarde locale est indisponible dans ce navigateur.');return false;}}
+function isFavorite(id){return favoriteAnime.some(a=>String(a.mal_id)===String(id));}
+function updateFavoriteCount(){const el=document.getElementById('favoriteCount');if(el)el.textContent=String(favoriteAnime.length);const b=document.getElementById('favoritesToggle');if(b)b.setAttribute('aria-label',`Afficher mes favoris (${favoriteAnime.length})`);}
+function toggleFavorite(id){const a=allAnime.find(x=>String(x.mal_id)===String(id))||shownAnime.find(x=>String(x.mal_id)===String(id))||favoriteAnime.find(x=>String(x.mal_id)===String(id));if(!a)return;if(isFavorite(id)){favoriteAnime=favoriteAnime.filter(x=>String(x.mal_id)!==String(id));}else{favoriteAnime.push(a);}saveFavorites();if(showFavoritesOnly)applyFilters();else render(shownAnime);if(document.getElementById('detailModal').classList.contains('open')){const modalFav=document.getElementById('detailFavoriteBtn');if(modalFav){modalFav.textContent=isFavorite(id)?'♥ Retirer des favoris':'♡ Ajouter aux favoris';modalFav.classList.toggle('is-favorite',isFavorite(id));}}}
 const fallbackImages=[
 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=500&q=80',
 'https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?auto=format&fit=crop&w=500&q=80',
@@ -136,14 +144,15 @@ function makeCard(a){
  const score=Number(a.score);
  const scoreText=Number.isFinite(score)&&score>0?score.toFixed(1):'—';
  return `<article class="card">
-  <div class="poster-wrap"><img class="poster" src="${escapeHTML(safeImage(a))}" alt="Affiche de ${escapeHTML(title)}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackImages[0]}'"><span class="type">${escapeHTML(type)}</span><span class="score">★ ${scoreText}</span></div>
+  <div class="poster-wrap"><button class="favorite-btn ${isFavorite(a.mal_id)?'is-favorite':''}" data-favorite="${a.mal_id}" aria-label="${isFavorite(a.mal_id)?'Retirer des favoris':'Ajouter aux favoris'}" title="${isFavorite(a.mal_id)?'Retirer des favoris':'Ajouter aux favoris'}">${isFavorite(a.mal_id)?'♥':'♡'}</button><img class="poster" src="${escapeHTML(safeImage(a))}" alt="Affiche de ${escapeHTML(title)}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackImages[0]}'"><span class="type">${escapeHTML(type)}</span><span class="score">★ ${scoreText}</span></div>
   <div class="card-info"><div class="card-title">${escapeHTML(title)}</div><div class="meta">${escapeHTML(a.year||a.aired?.prop?.from?.year||'Année inconnue')} · ${escapeHTML(a.episodes?`${a.episodes} épisodes`:'Épisodes inconnus')}</div><div class="card-actions"><button class="primary" data-details="${a.mal_id}">Détails</button><button class="secondary" data-watch="${encodeURIComponent(title)}">Où voir ?</button></div></div>
  </article>`;
 }
-function render(list){shownAnime=list;countText.textContent=`${list.length} animé${list.length>1?'s':''} affiché${list.length>1?'s':''}`;if(!list.length){showMessage('Aucun résultat. Essaie un autre nom ou enlève quelques filtres.');loadMoreBtn.hidden=true;return;}grid.innerHTML=list.map(makeCard).join('');loadMoreBtn.hidden=allAnime.length===0||list.length<allAnime.length;}
+function render(list){shownAnime=list;countText.textContent=showFavoritesOnly?`${list.length} favori${list.length>1?'s':''}`:`${list.length} animé${list.length>1?'s':''} affiché${list.length>1?'s':''}`;document.getElementById('favoritesBanner').hidden=!showFavoritesOnly;if(!list.length){showMessage(showFavoritesOnly?'Tu n’as pas encore de favoris. Appuie sur ♡ sur une affiche pour en ajouter.':'Aucun résultat. Essaie un autre nom ou enlève quelques filtres.');loadMoreBtn.hidden=true;return;}grid.innerHTML=list.map(makeCard).join('');loadMoreBtn.hidden=showFavoritesOnly||allAnime.length===0||list.length<allAnime.length;}
 function applyFilters(){
  const q=currentQuery.toLowerCase().trim(),genre=document.getElementById('genreFilter').value,status=document.getElementById('statusFilter').value,minScore=Number(document.getElementById('ratingFilter').value),year=document.getElementById('yearFilter').value;
- let list=allAnime.filter(a=>{
+ let source=showFavoritesOnly?favoriteAnime:allAnime;
+ let list=source.filter(a=>{
  const name=`${a.title||''} ${a.title_english||''} ${a.title_japanese||''}`.toLowerCase();
  if(q&&!name.includes(q))return false;
  if(currentType==='movie'&&a.type!=='Movie')return false;
@@ -213,16 +222,18 @@ function openWatch(title){
  document.getElementById('modalContent').innerHTML=`<div class="eyebrow">ANIME ZONE · OPTIONS LÉGALES</div><h2>Où regarder ${safeTitle} ?</h2><p>Choisis un service pour vérifier si cet animé est disponible dans ton pays. Anime Zone ne diffuse pas directement les épisodes.</p><div style="display:flex;flex-wrap:wrap;gap:10px;margin:18px 0"><a class="primary" style="display:inline-block;padding:12px 14px;border-radius:8px" href="https://www.justwatch.com/fr/recherche?q=${q}" target="_blank" rel="noopener noreferrer">Chercher ce titre sur JustWatch ↗</a><a class="secondary" style="display:inline-block;padding:12px 14px;border-radius:8px" href="https://www.crunchyroll.com/fr" target="_blank" rel="noopener noreferrer">Crunchyroll ↗</a><a class="secondary" style="display:inline-block;padding:12px 14px;border-radius:8px" href="https://www.netflix.com/sn/browse/genre/7424" target="_blank" rel="noopener noreferrer">Netflix Anime ↗</a></div><p class="notice">JustWatch aide à rechercher le titre sur plusieurs services. Crunchyroll et Netflix possèdent leurs propres catalogues ; tous les animés ne sont pas disponibles partout et certains services nécessitent un abonnement.</p>`;
  document.getElementById('detailModal').classList.add('open');
 }
-function openDetails(id){const a=allAnime.find(x=>String(x.mal_id)===String(id))||shownAnime.find(x=>String(x.mal_id)===String(id));if(!a)return;const title=a.title_english||a.title||'Anime';document.getElementById('modalContent').innerHTML=`<div class="detail"><img src="${escapeHTML(safeImage(a))}" alt="Affiche de ${escapeHTML(title)}"><div><div class="eyebrow">${escapeHTML(a.type||'Anime')} · ${escapeHTML(a.year||'')}</div><h2>${escapeHTML(title)}</h2><div class="meta">★ ${a.score||'Note inconnue'} · ${escapeHTML(a.status||'Statut inconnu')} · ${escapeHTML(a.episodes||'?')} épisodes</div><p>${escapeHTML(a.synopsis||'Aucun résumé disponible pour cet animé.').slice(0,900)}</p><p><strong>Genres :</strong> ${escapeHTML((a.genres||[]).map(g=>g.name).join(', ')||'Non renseignés')}</p><button class="primary" style="padding:11px 13px;border-radius:8px" id="detailWatchBtn">Où regarder légalement ? ↗</button><p class="notice">La disponibilité dépend du pays et peut changer.</p></div></div>`;document.getElementById('detailModal').classList.add('open');document.getElementById('detailWatchBtn').addEventListener('click',()=>openWatch(title));}
+function openDetails(id){const a=allAnime.find(x=>String(x.mal_id)===String(id))||shownAnime.find(x=>String(x.mal_id)===String(id))||favoriteAnime.find(x=>String(x.mal_id)===String(id));if(!a)return;const title=a.title_english||a.title||'Anime';document.getElementById('modalContent').innerHTML=`<div class="detail"><img src="${escapeHTML(safeImage(a))}" alt="Affiche de ${escapeHTML(title)}"><div><div class="eyebrow">${escapeHTML(a.type||'Anime')} · ${escapeHTML(a.year||'')}</div><h2>${escapeHTML(title)}</h2><div class="meta">★ ${a.score||'Note inconnue'} · ${escapeHTML(a.status||'Statut inconnu')} · ${escapeHTML(a.episodes||'?')} épisodes</div><p>${escapeHTML(a.synopsis||'Aucun résumé disponible pour cet animé.').slice(0,900)}</p><p><strong>Genres :</strong> ${escapeHTML((a.genres||[]).map(g=>g.name).join(', ')||'Non renseignés')}</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" style="padding:11px 13px;border-radius:8px" id="detailWatchBtn">Où regarder légalement ? ↗</button><button class="secondary favorite-btn-detail ${isFavorite(a.mal_id)?'is-favorite':''}" style="position:static;width:auto;height:auto;padding:11px 13px;border-radius:8px" id="detailFavoriteBtn">${isFavorite(a.mal_id)?'♥ Retirer des favoris':'♡ Ajouter aux favoris'}</button></div><p class="notice">La disponibilité dépend du pays et peut changer.</p></div></div>`;document.getElementById('detailModal').classList.add('open');document.getElementById('detailWatchBtn').addEventListener('click',()=>openWatch(title));document.getElementById('detailFavoriteBtn').addEventListener('click',()=>toggleFavorite(a.mal_id));}
 function closeModal(){document.getElementById('detailModal').classList.remove('open');}
 document.getElementById('closeModal').addEventListener('click',closeModal);
 document.getElementById('detailModal').addEventListener('click',e=>{if(e.target.id==='detailModal')closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-grid.addEventListener('click',e=>{const d=e.target.closest('[data-details]'),w=e.target.closest('[data-watch]');if(d)openDetails(d.dataset.details);if(w)openWatch(decodeURIComponent(w.dataset.watch));});
+grid.addEventListener('click',e=>{const f=e.target.closest('[data-favorite]'),d=e.target.closest('[data-details]'),w=e.target.closest('[data-watch]');if(f){toggleFavorite(f.dataset.favorite);return;}if(d)openDetails(d.dataset.details);if(w)openWatch(decodeURIComponent(w.dataset.watch));});
+document.getElementById('favoritesToggle').addEventListener('click',()=>{showFavoritesOnly=!showFavoritesOnly;document.getElementById('favoritesToggle').classList.toggle('active',showFavoritesOnly);if(showFavoritesOnly){currentQuery='';searchInput.value='';['genreFilter','statusFilter','ratingFilter','yearFilter'].forEach(id=>document.getElementById(id).value=id==='ratingFilter'?'0':'');currentType='all';document.querySelectorAll('[data-type]').forEach(b=>b.classList.toggle('active',b.dataset.type==='all'));applyFilters();document.getElementById('catalogue').scrollIntoView({behavior:'smooth'});}else{loadCatalogue(true);}});
+document.getElementById('showAllBtn').addEventListener('click',()=>{showFavoritesOnly=false;document.getElementById('favoritesToggle').classList.remove('active');loadCatalogue(true);});
 function randomAnime(){if(!allAnime.length){loadCatalogue(true);return;}const a=allAnime[Math.floor(Math.random()*allAnime.length)];openDetails(a.mal_id);}
 document.getElementById('randomBtn').addEventListener('click',randomAnime);document.getElementById('heroRandom').addEventListener('click',randomAnime);
 document.getElementById('yearNow').textContent=new Date().getFullYear();
-fillYears();loadCatalogue(true);
+fillYears();updateFavoriteCount();loadCatalogue(true);
 </script>
 </body>
 </html>
