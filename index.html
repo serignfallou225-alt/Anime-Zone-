@@ -96,14 +96,26 @@ footer a{color:var(--neon)}
     <div class="resultsline"><span id="countText">Préparation du catalogue…</span><span id="sortText">Tri : populaires</span></div>
     <div class="grid" id="animeGrid"><div class="loading">Chargement des animés…<br>Patiente quelques secondes.</div></div>
     <div class="more-row"><button class="secondary" id="loadMore" hidden>Charger plus d'animés ↓</button></div>
-    <p class="notice">Les affiches et informations proviennent de l'API publique Jikan/MyAnimeList. Anime Zone ne diffuse pas directement de vidéos : les liens de visionnage servent à rechercher des options légales disponibles selon ton pays.</p>
+    <p class="notice">Les informations du catalogue proviennent de Tenrai API, une API publique en bêta. Si le service est indisponible, Anime Zone affiche un petit catalogue de secours. Anime Zone ne diffuse pas directement de vidéos : les liens servent à rechercher des options légales disponibles selon ton pays.</p>
   </section>
   <section id="infos" style="margin-top:42px"><h2>Anime Zone, c'est quoi ?</h2><p class="sub" style="line-height:1.8;max-width:750px">Un catalogue pour découvrir des animés, comparer les notes et explorer des fiches. Sélectionne « Où regarder ? » pour rechercher des plateformes de streaming officielles.</p></section>
 </main>
 <footer><div class="footer-inner"><span>© <span id="yearNow"></span> Anime Zone · Fait pour les fans d'animés</span><span><a href="#accueil">Retour en haut ↑</a> · Catalogue informatif, aucun épisode hébergé.</span></div></footer>
 <div class="modal" id="detailModal" role="dialog" aria-modal="true" aria-label="Détails de l'animé"><div class="modal-box"><button class="iconbtn modal-close" id="closeModal" aria-label="Fermer">✕</button><div id="modalContent"></div></div></div>
 <script>
-const API='https://api.jikan.moe/v4';
+const API='https://api.tenrai.org/v1';
+let usingFallback=false;
+// Petit catalogue local de secours : il reste utilisable même si l’API est momentanément indisponible.
+const localAnime=[
+ {mal_id:20,title:'Naruto',title_english:'Naruto',type:'TV',score:8.0,year:2002,episodes:220,status:'Finished Airing',synopsis:'Naruto Uzumaki, un jeune ninja rejeté par son village, rêve de devenir Hokage et de gagner le respect de tous.',genres:[{mal_id:1,name:'Action'},{mal_id:2,name:'Aventure'},{mal_id:27,name:'Shounen'}],images:{jpg:{image_url:'https://cdn.myanimelist.net/images/anime/13/17405.jpg',large_image_url:'https://cdn.myanimelist.net/images/anime/13/17405.jpg'}}},
+ {mal_id:21,title:'One Piece',title_english:'One Piece',type:'TV',score:8.7,year:1999,episodes:0,status:'Currently Airing',synopsis:'Monkey D. Luffy prend la mer avec son équipage pour trouver le légendaire trésor One Piece.',genres:[{mal_id:1,name:'Action'},{mal_id:2,name:'Aventure'},{mal_id:27,name:'Shounen'}],images:{jpg:{image_url:'https://cdn.myanimelist.net/images/anime/6/73245.jpg',large_image_url:'https://cdn.myanimelist.net/images/anime/6/73245.jpg'}}},
+ {mal_id:38000,title:'Demon Slayer: Kimetsu no Yaiba',title_english:'Demon Slayer',type:'TV',score:8.5,year:2019,episodes:26,status:'Finished Airing',synopsis:'Tanjiro devient pourfendeur de démons afin de sauver sa sœur et venger sa famille.',genres:[{mal_id:1,name:'Action'},{mal_id:10,name:'Fantasy'},{mal_id:27,name:'Shounen'}],images:{jpg:{image_url:'https://cdn.myanimelist.net/images/anime/1286/99889.jpg',large_image_url:'https://cdn.myanimelist.net/images/anime/1286/99889.jpg'}}},
+ {mal_id:16498,title:'Attack on Titan',title_english:'Attack on Titan',type:'TV',score:8.5,year:2013,episodes:25,status:'Finished Airing',synopsis:'Dans un monde menacé par des Titans, Eren et ses amis se battent pour survivre et découvrir la vérité.',genres:[{mal_id:1,name:'Action'},{mal_id:8,name:'Drame'},{mal_id:27,name:'Shounen'}],images:{jpg:{image_url:'https://cdn.myanimelist.net/images/anime/10/47347.jpg',large_image_url:'https://cdn.myanimelist.net/images/anime/10/47347.jpg'}}},
+ {mal_id:40748,title:'Jujutsu Kaisen',title_english:'Jujutsu Kaisen',type:'TV',score:8.6,year:2020,episodes:24,status:'Finished Airing',synopsis:'Yuji Itadori rejoint une école d’exorcisme après avoir avalé un objet maudit dangereux.',genres:[{mal_id:1,name:'Action'},{mal_id:37,name:'Supernatural'},{mal_id:27,name:'Shounen'}],images:{jpg:{image_url:'https://cdn.myanimelist.net/images/anime/1171/109222.jpg',large_image_url:'https://cdn.myanimelist.net/images/anime/1171/109222.jpg'}}},
+ {mal_id:31964,title:'My Hero Academia',title_english:'My Hero Academia',type:'TV',score:7.9,year:2016,episodes:13,status:'Finished Airing',synopsis:'Dans un monde où les pouvoirs sont courants, Izuku Midoriya rêve de devenir un grand héros.',genres:[{mal_id:1,name:'Action'},{mal_id:27,name:'Shounen'}],images:{jpg:{image_url:'https://cdn.myanimelist.net/images/anime/10/78745.jpg',large_image_url:'https://cdn.myanimelist.net/images/anime/10/78745.jpg'}}},
+ {mal_id:5114,title:'Fullmetal Alchemist: Brotherhood',title_english:'Fullmetal Alchemist: Brotherhood',type:'TV',score:9.1,year:2009,episodes:64,status:'Finished Airing',synopsis:'Deux frères alchimistes cherchent la pierre philosophale pour réparer les conséquences d’une transmutation interdite.',genres:[{mal_id:1,name:'Action'},{mal_id:8,name:'Drame'},{mal_id:10,name:'Fantasy'}],images:{jpg:{image_url:'https://cdn.myanimelist.net/images/anime/1208/94745.jpg',large_image_url:'https://cdn.myanimelist.net/images/anime/1208/94745.jpg'}}},
+ {mal_id:50265,title:'Spy x Family',title_english:'Spy x Family',type:'TV',score:8.3,year:2022,episodes:12,status:'Finished Airing',synopsis:'Un espion, une tueuse et une enfant télépathe forment une famille secrète pour une mission délicate.',genres:[{mal_id:4,name:'Comédie'},{mal_id:1,name:'Action'}],images:{jpg:{image_url:'https://cdn.myanimelist.net/images/anime/1441/122795.jpg',large_image_url:'https://cdn.myanimelist.net/images/anime/1441/122795.jpg'}}}
+];
 const grid=document.getElementById('animeGrid');
 const countText=document.getElementById('countText');
 const searchInput=document.getElementById('searchInput');
@@ -150,7 +162,7 @@ async function loadCatalogue(reset=true){
  const token=++requestToken;
  if(reset){page=1;showMessage('Chargement des animés…<br>Connexion au catalogue en cours.','loading');countText.textContent='Chargement…';}
  const q=currentQuery.trim();
- const params=new URLSearchParams({page:String(page),limit:'25',order_by:'popularity',sort:'asc',sfw:'true'});
+ const params=new URLSearchParams({page:String(page),limit:'25',order_by:'popularity',sort:'desc',sfw:'true'});
  if(q)params.set('q',q);
  if(currentType==='movie')params.set('type','movie');
  if(currentType==='tv')params.set('type','tv');
@@ -166,15 +178,23 @@ async function loadCatalogue(reset=true){
   const data=await response.json();
   if(token!==requestToken)return;
   const results=Array.isArray(data.data)?data.data:[];
+  usingFallback=false;const oldNotice=document.getElementById('apiNotice');if(oldNotice)oldNotice.remove();
   allAnime=reset?results:allAnime.concat(results);
   if(!results.length&&reset){showMessage('Aucun animé trouvé. Essaie une autre recherche.');countText.textContent='0 résultat';loadMoreBtn.hidden=true;return;}
   applyFilters();loadMoreBtn.hidden=!data.pagination?.has_next_page;
  }catch(err){
   if(token!==requestToken)return;
-  allAnime=[];
-  showMessage(`<strong>Impossible de charger le catalogue pour le moment.</strong><br>${err.name==='AbortError'?'La connexion prend trop de temps.':'Vérifie ta connexion Internet ou réessaie dans quelques instants.'}<br><br><button class="primary" id="retryBtn">Réessayer ↻</button>`,'error');
-  countText.textContent='Catalogue temporairement indisponible';loadMoreBtn.hidden=true;
-  const retry=document.getElementById('retryBtn');if(retry)retry.addEventListener('click',()=>{retry.disabled=true;retry.textContent='Chargement…';loadCatalogue(true);});
+  // Si l’API ne répond pas, on garde le site utilisable avec des fiches locales.
+  usingFallback=true;
+  allAnime=localAnime.slice();
+  if(reset){page=1;}
+  applyFilters();
+  countText.textContent=`Catalogue de secours · ${shownAnime.length} animé${shownAnime.length>1?'s':''}`;
+  loadMoreBtn.hidden=true;
+  const oldNotice=document.getElementById('apiNotice');if(oldNotice)oldNotice.remove();
+  const notice=document.createElement('div');notice.id='apiNotice';notice.className='notice';notice.style.margin='12px 0';notice.innerHTML='Le catalogue en ligne est momentanément inaccessible. Voici des fiches de secours ; réessaie plus tard pour récupérer le catalogue complet. <button class="secondary" id="retryBtn">Réessayer ↻</button>';
+  grid.parentElement.insertBefore(notice,grid);
+  const retry=document.getElementById('retryBtn');if(retry)retry.addEventListener('click',()=>{usingFallback=false;retry.disabled=true;retry.textContent='Chargement…';notice.remove();loadCatalogue(true);});
  }
 }
 function debounce(fn,delay=500){let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),delay);};}
