@@ -36,6 +36,9 @@ h2{font-size:23px;margin:0 0 5px}.sub{font-size:12px;color:var(--muted)}
 .searchbox input{min-width:0;flex:1;background:#fff;color:#171321;border:0;border-radius:8px;padding:14px 15px;outline:2px solid transparent}
 .searchbox input:focus{outline-color:var(--neon)}
 .filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:8px;margin-bottom:14px}
+.sort-wrap{display:flex;align-items:center;gap:7px;min-width:0;border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:0 9px;color:var(--neon);font-size:12px;font-weight:700}
+.sort-wrap select{flex:1;border:0;background:transparent;padding:10px 2px;min-width:0;color:var(--text);font-weight:600}
+.sort-wrap select option{background:#14111f;color:#fff}
 .filters select{width:100%;min-width:0;background:var(--panel2);color:#e9e3fa;border:1px solid var(--line);padding:10px;border-radius:8px;font-size:12px}
 .filterbtn{padding:10px;font-size:12px}
 .resultsline{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;margin:12px 0 15px}
@@ -92,7 +95,7 @@ footer a{color:var(--neon)}
       <select id="statusFilter" aria-label="Filtrer par statut"><option value="">Tous les statuts</option><option value="airing">En cours</option><option value="complete">Terminés</option></select>
       <select id="ratingFilter" aria-label="Filtrer par note"><option value="0">Toutes les notes</option><option value="8">Note 8 et +</option><option value="7">Note 7 et +</option><option value="6">Note 6 et +</option></select>
       <select id="yearFilter" aria-label="Filtrer par année"><option value="">Toutes les années</option></select>
-      <select id="sortFilter" aria-label="Trier par"><option value="popularity">Trier par : popularité</option><option value="score">Trier par : meilleure note</option><option value="year">Trier par : année récente</option><option value="title">Trier par : ordre alphabétique</option></select>
+      <label class="sort-wrap">Trier par : <select id="sortFilter" aria-label="Trier par"><option value="popularity">Popularité</option><option value="score">Meilleure note</option><option value="year">Année récente</option><option value="title">Ordre alphabétique</option></select></label>
       <button class="filterbtn" id="clearFilters">Effacer ✕</button>
     </div>
     <div class="resultsline"><span id="countText">Préparation du catalogue…</span><span id="sortText">Classement : popularité</span></div><div id="favoritesBanner" class="notice" hidden style="margin:0 0 14px">⭐ Tu consultes tes favoris. <button class="secondary" id="showAllBtn">Voir tout le catalogue</button></div>
